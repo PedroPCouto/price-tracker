@@ -1,0 +1,8 @@
+.flyingtextinput:disabled {
+    background-color: #eee;
+    cursor: not-allowed;
+}
+
+.flyingtextinputlabel {
+    display: none;
+}

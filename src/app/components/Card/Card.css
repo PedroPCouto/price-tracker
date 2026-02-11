@@ -1,0 +1,31 @@
+.card_body {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.card_title {
+    font-weight: bold;
+    font-size: larger;
+}
+
+.card_header {
+    display: flex;   
+}
+
+.card_detail {
+    color:#bebebe;
+    font-size: small;
+}
+
+.delete_button {
+    color: #fff;
+    background-color: rgb(209, 66, 66);
+    border-radius: 5px;
+}
+
+.refresh_button {
+    background-color: rgb(165, 165, 165);
+    border-radius: 5px;
+}
+
