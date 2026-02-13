@@ -1,0 +1,33 @@
+generator client {
+    provider = "prisma-client-js"
+    // REMOVED the output line so it defaults to the standard node_modules location
+    // ADDED linux-musl-openssl-3.0.x for Alpine Linux support
+    binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model Product {
+  id          String        @id @default(cuid())
+  name        String
+  url         String
+  website     String
+  createdAt   DateTime      @default(now())
+  priceHistory PriceHistory[]
+
+  @@index([createdAt])
+}
+
+model PriceHistory {
+  id          String   @id @default(cuid())
+  productId   String
+  price       Float
+  currency    String   @default("BRL")
+  checkedAt   DateTime @default(now())
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId, checkedAt])
+}
