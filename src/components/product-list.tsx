@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Trash2, RefreshCw, TrendingDown, ExternalLink } from "lucide-react";
+import { Trash2, RefreshCw, TrendingDown, ExternalLink, Filter } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import PriceChart from "./price-chart";
 import {
@@ -12,6 +12,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "./ui/input";
+import "@/components/styles.css";
 
 interface Product {
   id: string;
@@ -22,6 +24,7 @@ interface Product {
   currentPrice: number | null;
   currency: string;
   lastChecked: string | null;
+  tags: string;
 }
 
 interface ProductListProps {
@@ -135,8 +138,70 @@ export default function ProductList({ refreshTrigger }: ProductListProps) {
     );
   }
 
+  const openFilterModal = () => {
+    const modal = document?.getElementById?.("filter_modal");
+    if (modal) {
+      modal?.classList?.toggle?.("occulted");
+    }
+  }
+
+  const filterByTag = (tag: string) => {
+    const filter = tag?.trim()?.toLowerCase();
+    if (!filter) {
+      fetchProducts();
+      return;
+    }
+
+    const filtered = products?.filter((product) =>
+      product?.tags
+        ?.split?.(",")
+        ?.map?.((t) => t.trim().toLowerCase())
+        ?.includes(filter),
+    );
+
+    setProducts(filtered ?? []);
+  }
+
   return (
     <>
+      <div className="relative flex justify-end mb-6">
+        <Button
+          variant="outline"
+          className="flex items-center gap-2 border-2 border-primary/30 hover:border-primary hover:bg-primary/5 transition-all duration-200 px-4 py-2 rounded-xl shadow-sm"
+          onClick={openFilterModal}
+          disabled={loading}
+        >
+          <Filter className="h-4 w-4 text-primary" />
+        </Button>
+
+        <div
+          id="filter_modal"
+          className="drop_down occulted absolute top-12 right-0 z-50 bg-background border border-border rounded-2xl shadow-xl p-4 w-64 flex flex-col gap-3"
+        >
+          <p className="text-sm font-semibold text-foreground">Filtrar por tag</p>
+          <Input
+            placeholder="Digite uma tag..."
+            className="rounded-lg border-border focus:ring-2 focus:ring-primary/30"
+            onChange={(e) => filterByTag(e.target.value)}
+          />
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              className="flex-1 text-xs rounded-lg hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 transition-colors"
+              onClick={() => filterByTag("")}
+            >
+              Limpar
+            </Button>
+            <Button
+              variant="outline"
+              className="flex-1 text-xs rounded-lg hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-colors"
+              onClick={openFilterModal}
+            >
+              Fechar
+            </Button>
+          </div>
+        </div>
+      </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {products?.map?.((product) => (
           <Card
@@ -152,6 +217,18 @@ export default function ProductList({ refreshTrigger }: ProductListProps) {
                 <p className="text-sm text-muted-foreground">
                   {product?.website ?? ""}
                 </p>
+                {product?.tags && (
+                  <div className="mt-2">
+                    {product?.tags?.split?.(",")?.map?.((tag: string) => (
+                      <span
+                        key={tag}
+                        className="inline-block bg-secondary text-secondary-foreground text-xs px-2 py-1 rounded mr-2"
+                      >
+                        {tag.trim()}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {product?.currentPrice ? (

@@ -15,6 +15,7 @@ interface ProductFormProps {
 export default function ProductForm({ onProductAdded }: ProductFormProps) {
   const [name, setName] = useState('');
   const [url, setUrl] = useState('');
+  const [tag, setTag] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -90,6 +91,21 @@ export default function ProductForm({ onProductAdded }: ProductFormProps) {
             value={url ?? ''}
             onChange={(e) => setUrl(e?.target?.value ?? '')}
             placeholder="https://exemplo.com/produto"
+            className="mt-1.5"
+            disabled={loading}
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="tag" className="text-sm font-medium">
+            Tag
+          </Label>
+          <Input
+            id="tag"
+            type="text"
+            value={tag ?? ''}
+            onChange={(e) => setTag(e?.target?.value ?? '')}
+            placeholder="Geladeira, Eletrodoméstico (Separar por vírgula)"
             className="mt-1.5"
             disabled={loading}
           />

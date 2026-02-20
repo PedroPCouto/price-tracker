@@ -1,0 +1,8 @@
+.occulted {
+    display: none;
+}
+
+.drop_down:not(.occulted) {
+    display: flex;
+    flex-direction: column;
+}

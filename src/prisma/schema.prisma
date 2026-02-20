@@ -1,7 +1,5 @@
 generator client {
     provider = "prisma-client-js"
-    // REMOVED the output line so it defaults to the standard node_modules location
-    // ADDED linux-musl-openssl-3.0.x for Alpine Linux support
     binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
@@ -12,6 +10,7 @@ datasource db {
 
 model Product {
   id          String        @id @default(cuid())
+  tags        String
   name        String
   url         String
   website     String

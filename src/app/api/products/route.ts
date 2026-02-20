@@ -20,6 +20,7 @@ export async function GET() {
         id: product?.id ?? "",
         name: product?.name ?? "",
         url: product?.url ?? "",
+        tags: product?.tags ?? "",
         website: product?.website ?? "",
         createdAt: product?.createdAt?.toISOString() ?? "",
         currentPrice: product?.priceHistory?.[0]?.price ?? null,
@@ -41,7 +42,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, url } = body ?? {};
+    const { name, url, tag } = body ?? {};
 
     if (!name || !url) {
       return NextResponse.json(
@@ -63,6 +64,7 @@ export async function POST(request: NextRequest) {
         name,
         url,
         website,
+        tags: tag ?? "",
       },
     });
 
