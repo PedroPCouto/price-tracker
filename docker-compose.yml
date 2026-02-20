@@ -24,7 +24,6 @@ services:
     container_name: prisma_migrator
     environment:
       DATABASE_URL: postgresql://app:app_password@db:5432/app?schema=public
-    # CHANGE THIS LINE: use 'db push' instead of 'migrate deploy'
     command: npx prisma db push --schema=./src/prisma/schema.prisma
     depends_on:
       db:
