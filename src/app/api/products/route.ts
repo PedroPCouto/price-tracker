@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
     await prisma.priceHistory.create({
       data: {
         productId: product?.id ?? "",
-        price: currentPrice ? String(currentPrice) : 0,
+        price: currentPrice ?? 0,
         currency: "BRL",
       },
     });
