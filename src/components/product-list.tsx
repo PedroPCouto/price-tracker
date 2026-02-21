@@ -37,6 +37,8 @@ export default function ProductList({ refreshTrigger }: ProductListProps) {
   const [checkingPrice, setCheckingPrice] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
 
+  const [filter, setFilter] = useState(""); 
+
   const fetchProducts = async () => {
     try {
       const response = await fetch("/api/products");
@@ -126,8 +128,80 @@ export default function ProductList({ refreshTrigger }: ProductListProps) {
     );
   }
 
+
+    const openFilterModal = () => {
+    const modal = document?.getElementById?.("filter_modal");
+    if (modal) {
+      modal?.classList?.toggle?.("occulted");
+    }
+  }
+  
+
+  const filterByTag = (tag: string) => {
+    console.log("Filtering by tag:", tag);
+    const filter = tag?.trim()?.toLowerCase();
+    console.log("Filtering by tag:", filter);
+    if (!filter) {
+      setFilter("");
+      fetchProducts();
+      return;
+    }
+
+    const filtered = products?.filter((product) => {
+      const tags = product?.tags?.split?.(",")?.map?.((t: string) => t?.trim()?.toLowerCase());
+      for (const t of tags) {
+        if (t.includes(filter)) {
+          return true;
+        }
+      }
+      return false;
+    });
+    setFilter(tag);
+    setProducts(filtered ?? []);
+  }
+
   if (products?.length === 0) {
     return (
+      <>
+      <div className="relative flex justify-end mb-6">
+        <Button
+          variant="outline"
+          className="flex items-center gap-2 border-2 border-primary/30 hover:border-primary hover:bg-primary/5 transition-all duration-200 px-4 py-2 rounded-xl shadow-sm"
+          onClick={openFilterModal}
+          disabled={loading}
+        >
+          <Filter className="h-4 w-4 text-primary" />
+        </Button>
+
+        <div
+          id="filter_modal"
+          className="drop_down occulted absolute top-12 right-0 z-50 bg-background border border-border rounded-2xl shadow-xl p-4 w-64 flex flex-col gap-3"
+        >
+          <p className="text-sm font-semibold text-foreground">Filtrar por tag</p>
+          <Input
+            placeholder="Digite uma tag..."
+            className="rounded-lg border-border focus:ring-2 focus:ring-primary/30"
+            onChange={(e) => filterByTag(e.target.value)}
+            value={filter}
+          />
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              className="flex-1 text-xs rounded-lg hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 transition-colors"
+              onClick={() => filterByTag("")}
+            >
+              Limpar
+            </Button>
+            <Button
+              variant="outline"
+              className="flex-1 text-xs rounded-lg hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-colors"
+              onClick={openFilterModal}
+            >
+              Fechar
+            </Button>
+          </div>
+        </div>
+      </div>
       <Card className="p-12 text-center shadow-lg">
         <TrendingDown className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
         <h3 className="text-lg font-semibold mb-2">Sem produtos ainda</h3>
@@ -135,38 +209,11 @@ export default function ProductList({ refreshTrigger }: ProductListProps) {
           Adicione um produto para começar a monitorar
         </p>
       </Card>
+      </>
     );
   }
 
-  const openFilterModal = () => {
-    const modal = document?.getElementById?.("filter_modal");
-    if (modal) {
-      modal?.classList?.toggle?.("occulted");
-    }
-  }
 
-  const filterByTag = (tag: string) => {
-    console.log("Filtering by tag:", tag);
-    const filter = tag?.trim()?.toLowerCase();
-    console.log("Filtering by tag:", filter);
-    if (!filter) {
-      fetchProducts();
-      return;
-    }
-
-    const filtered = products?.filter((product) => {
-      console.log("Checking product:", product?.name, "with tags:", product?.tags);
-      const tags = product?.tags?.split?.(",")?.map?.((t: string) => t?.trim()?.toLowerCase());
-      console.log("Parsed tags:", tags);
-      if (tags?.includes?.(filter)) {
-        console.log("Product matches filter:", product?.name);
-        return true;
-      }
-      return false;
-    });
-
-    setProducts(filtered ?? []);
-  }
 
   return (
     <>
