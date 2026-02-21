@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
         url,
         website,
         tags: tag ?? "",
-        priceSelector: priceSelector,
+        priceSelector: priceSelector ?? "",
       },
     });
 
