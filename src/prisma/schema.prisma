@@ -9,14 +9,14 @@ datasource db {
 }
 
 model Product {
-  id          String        @id @default(cuid())
-  tags        String        @default("")
-  name        String
-  url         String
-  website     String
-  createdAt   DateTime      @default(now())
-  priceHistory PriceHistory[]
-
+  id            String        @id @default(cuid())
+  tags          String        @default("")
+  name          String
+  url           String
+  website       String
+  priceSelector String        @default("")
+  createdAt     DateTime      @default(now())
+  priceHistory  PriceHistory[]
   @@index([createdAt])
 }
 

@@ -16,6 +16,7 @@ export default function ProductForm({ onProductAdded }: ProductFormProps) {
   const [name, setName] = useState('');
   const [url, setUrl] = useState('');
   const [tag, setTag] = useState('');
+  const [currentPrice, setCurrentPrice] = useState(0);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -36,7 +37,7 @@ export default function ProductForm({ onProductAdded }: ProductFormProps) {
       const response = await fetch('/api/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, url }),
+        body: JSON.stringify({ name, url, tag, currentPrice }),
       });
 
       if (!response?.ok) {
@@ -106,6 +107,20 @@ export default function ProductForm({ onProductAdded }: ProductFormProps) {
             value={tag ?? ''}
             onChange={(e) => setTag(e?.target?.value ?? '')}
             placeholder="Geladeira, Eletrodoméstico (Separar por vírgula)"
+            className="mt-1.5"
+            disabled={loading}
+          />
+        </div>
+        <div>
+          <Label htmlFor="price" className="text-sm font-medium">
+            Preço atual (Opcional, mas recomendado kkkkk)
+          </Label>
+          <Input
+            id="price"
+            type="number"
+            value={currentPrice ?? ''}
+            onChange={(e) => setCurrentPrice(Number(e?.target?.value ?? 0))}
+            placeholder="Apenas números, ex: 1299.99"
             className="mt-1.5"
             disabled={loading}
           />

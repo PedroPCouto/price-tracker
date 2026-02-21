@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import * as cheerio from "cheerio";
 import prisma from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -8,7 +9,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params
+    const { id } = await params;
 
     if (!id) {
       return NextResponse.json(
@@ -25,7 +26,10 @@ export async function POST(
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
-    const priceData = await scrapePrice(product?.url ?? "");
+    const priceData = await scrapePrice(
+      product?.url ?? "",
+      product?.priceSelector
+    );
 
     if (!priceData?.price) {
       return NextResponse.json(
@@ -59,6 +63,7 @@ export async function POST(
 
 async function scrapePrice(
   url: string,
+  priceSelector?: string | null
 ): Promise<{ price: number; currency: string } | null> {
   try {
     const response = await fetch(url, {
@@ -74,35 +79,68 @@ async function scrapePrice(
     }
 
     const html = await response.text();
-
-    const pricePatterns = [
-      /\$([0-9,]+\.?[0-9]{0,2})/,
-      /€([0-9,]+\.?[0-9]{0,2})/,
-      /£([0-9,]+\.?[0-9]{0,2})/,
-      /([0-9,]+\.?[0-9]{0,2})\s*BRL/i,
-      /price[:\s]+([0-9,]+\.?[0-9]{0,2})/i,
-      /"price"\s*:\s*"?([0-9,]+\.?[0-9]{0,2})/i,
-    ];
-
     let price: number | null = null;
     let currency = "BRL";
 
-    for (const pattern of pricePatterns ?? []) {
-      const match = html?.match?.(pattern);
-      if (match?.[1]) {
-        const priceStr = match[1]?.replace?.(/,/g, "") ?? "";
-        price = parseFloat(priceStr);
+    if (priceSelector) {
+      try {
+        const $ = cheerio.load(html);
+        const elementText = $(priceSelector).first().text().trim();
 
-        if (pattern?.source?.includes("€")) {
-          currency = "EUR";
-        } else if (pattern?.source?.includes("£")) {
-          currency = "GBP";
-        } else {
-          currency = "BRL";
+        if (elementText) {
+          if (elementText.includes("€")) currency = "EUR";
+          else if (elementText.includes("£")) currency = "GBP";
+          else if (elementText.includes("$")) currency = "USD"; 
+
+          const match = elementText.match(/[\d,.]+/);
+          if (match) {
+            let priceStr = match[0];
+            
+            if (priceStr.match(/\d+\.\d{3},\d{2}/) || priceStr.match(/\d+,\d{2}$/)) {
+              priceStr = priceStr.replace(/\./g, "").replace(",", ".");
+            } else {
+              priceStr = priceStr.replace(/,/g, "");
+            }
+
+            const parsedPrice = parseFloat(priceStr);
+            if (!isNaN(parsedPrice) && parsedPrice > 0) {
+              price = parsedPrice;
+            }
+          }
         }
+      } catch (selectorError) {
+        console.error("Error parsing with selector:", selectorError);
+      }
+    }
 
-        if (!isNaN(price ?? NaN) && price && price > 0) {
-          break;
+    if (!price) {
+      const pricePatterns = [
+        /\$([0-9,]+\.?[0-9]{0,2})/,
+        /€([0-9,]+\.?[0-9]{0,2})/,
+        /£([0-9,]+\.?[0-9]{0,2})/,
+        /([0-9,]+\.?[0-9]{0,2})\s*BRL/i,
+        /price[:\s]+([0-9,]+\.?[0-9]{0,2})/i,
+        /"price"\s*:\s*"?([0-9,]+\.?[0-9]{0,2})/i,
+      ];
+
+      for (const pattern of pricePatterns ?? []) {
+        const match = html?.match?.(pattern);
+        if (match?.[1]) {
+          const priceStr = match[1]?.replace?.(/,/g, "") ?? "";
+          const parsedPrice = parseFloat(priceStr);
+
+          if (pattern?.source?.includes("€")) {
+            currency = "EUR";
+          } else if (pattern?.source?.includes("£")) {
+            currency = "GBP";
+          } else {
+            currency = "BRL";
+          }
+
+          if (!isNaN(parsedPrice) && parsedPrice > 0) {
+            price = parsedPrice;
+            break;
+          }
         }
       }
     }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import * as cheerio from "cheerio";
 import prisma from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -42,7 +43,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, url, tag } = body ?? {};
+    const { name, url, tag, currentPrice } = body ?? {};
 
     if (!name || !url) {
       return NextResponse.json(
@@ -59,12 +60,52 @@ export async function POST(request: NextRequest) {
       console.error("Invalid URL:", e);
     }
 
+    let priceSelector = null;
+
+    if (currentPrice) {
+      try {
+        const response = await fetch(url, {
+          headers: {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36",
+          },
+        });
+        
+        if (response.ok) {
+          const html = await response.text();
+          const $ = cheerio.load(html);
+
+          const targetElement = $(`*:contains("${currentPrice}")`).last();
+
+          if (targetElement.length > 0) {
+            const tagName = targetElement.prop("tagName")?.toLowerCase() || "";
+            const id = targetElement.attr("id") ? `#${targetElement.attr("id")}` : "";
+            const classes = targetElement.attr("class") 
+              ? `.${targetElement.attr("class")?.trim().split(/\s+/).join(".")}` 
+              : "";
+            
+            priceSelector = `${tagName}${id}${classes}`;
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch HTML or generate selector:", err);
+      }
+    }
+
     const product = await prisma.product.create({
       data: {
         name,
         url,
         website,
         tags: tag ?? "",
+        priceSelector: priceSelector,
+      },
+    });
+
+    await prisma.priceHistory.create({
+      data: {
+        productId: product?.id ?? "",
+        price: currentPrice ? String(currentPrice) : 0,
+        currency: "BRL",
       },
     });
 
