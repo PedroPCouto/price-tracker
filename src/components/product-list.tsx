@@ -146,18 +146,24 @@ export default function ProductList({ refreshTrigger }: ProductListProps) {
   }
 
   const filterByTag = (tag: string) => {
+    console.log("Filtering by tag:", tag);
     const filter = tag?.trim()?.toLowerCase();
+    console.log("Filtering by tag:", filter);
     if (!filter) {
       fetchProducts();
       return;
     }
 
-    const filtered = products?.filter((product) =>
-      product?.tags
-        ?.split?.(",")
-        ?.map?.((t) => t.trim().toLowerCase())
-        ?.includes(filter),
-    );
+    const filtered = products?.filter((product) => {
+      console.log("Checking product:", product?.name, "with tags:", product?.tags);
+      const tags = product?.tags?.split?.(",")?.map?.((t: string) => t?.trim()?.toLowerCase());
+      console.log("Parsed tags:", tags);
+      if (tags?.includes?.(filter)) {
+        console.log("Product matches filter:", product?.name);
+        return true;
+      }
+      return false;
+    });
 
     setProducts(filtered ?? []);
   }
